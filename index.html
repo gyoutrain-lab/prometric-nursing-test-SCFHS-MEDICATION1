@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SCFHS Medication/Treatment Tie-Breaker Exam</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body { font-family: Arial,sans-serif; background:#f4f6f8; padding:20px; margin:0; }
+h1,h2 { margin-top:0; }
+label { display:block; margin-bottom:8px; }
+input[type="text"] { width:100%; padding:8px; margin-bottom:12px; }
+button { padding:10px 16px; margin-top:12px; background:#3498db; color:#fff; border:none; border-radius:6px; cursor:pointer; }
+button:disabled { background:#ccc; cursor:not-allowed; }
+.question { margin:20px 0; }
+.options label { border:1px solid #ddd; padding:8px; border-radius:6px; margin-bottom:6px; cursor:pointer; display:block; }
+.options input { margin-right:8px; }
+.hidden { display:none; }
+.result { padding:20px; background:#ecf0f1; border-radius:6px; }
+.badge { padding:4px 8px; border-radius:6px; color:#fff; font-size:12px; }
+.easy { background:#2ecc71; }
+.medium { background:#f1c40f; color:#000; }
+.hard { background:#e74c3c; }
+</style>
+</head>
+<body>
+
+<h1>SCFHS Prometric Adaptive Exam</h1>
+<p><strong>Focus:</strong> Medication & Treatment Tie-Breakers</p>
+
+<div id="intro">
+<label>Candidate Name / ID:</label>
+<input id="candidate" placeholder="Optional">
+<button onclick="startExam()">Start Exam</button>
+</div>
+
+<div id="exam" class="hidden">
+<div id="status"></div>
+<div class="question" id="questionBox"></div>
+<div class="options" id="options"></div>
+<button onclick="submitAnswer()">Next</button>
+<div id="rationaleBox" class="hidden"></div>
+</div>
+
+<div id="result" class="hidden"></div>
+
+<script>
+// ================= QUESTION BANK =================
+const questions = [
+  {id:1,level:"EASY",question:"A patient with hypokalemia (K⁺ 2.8) requires IV potassium. Which is safest?",options:["10 mEq over 2 min","20 mEq over 1 hour","20 mEq over 10 min","Oral K⁺ in 5 min"],correct:1,rationale:"Rapid IV push is dangerous; SCFHS tie-breaker prioritizes patient safety and correct dosage."},
+  {id:2,level:"EASY",question:"A patient is NPO for surgery. When should prophylactic antibiotic be given?",options:["After induction","30 min pre-op","At arrival","After incision"],correct:1,rationale:"SCFHS tie-breaker: correct timing prevents surgical infection; wrong timing = fail-fast."},
+  {id:3,level:"EASY",question:"Patient with HR 120, BP 78/40 received antihypertensive. Nurse should:",options:["Hold meds and assess","Administer more meds","Document and leave","Call family"],correct:0,rationale:"SCFHS: fail-fast if unsafe actions ignore vital signs."},
+  {id:4,level:"MEDIUM",question:"Elderly patient with renal impairment requires aminoglycoside. Correct action?",options:["Full dose IV","Reduced dose IV","Give PO","Hold medication"],correct:1,rationale:"SCFHS tie-breaker: patient-specific adjustment for safety."},
+  {id:5,level:"MEDIUM",question:"Patient allergic to penicillin, order for ampicillin. Nurse should:",options:["Administer anyway","Ask for alternative","Document allergy only","Notify family"],correct:1,rationale:"SCFHS: wrong medication due to allergy is fail-fast."},
+  {id:6,level:"MEDIUM",question:"Patient with chest pain has order for nitroglycerin sublingual. Nurse checks BP 88/50. Action?",options:["Give nitro","Hold and notify physician","Give half dose","Document and observe"],correct:1,rationale:"SCFHS: tie-breaker prioritizes safety; hypotension contraindicates nitro."},
+  {id:7,level:"HARD",question:"Patient refuses insulin, blood glucose 320 mg/dL. Nurse should:",options:["Force injection","Respect refusal and educate","Skip dose","Notify family"],correct:1,rationale:"SCFHS: ethical and safety principle tie-breaker; wrong coercion = fail-fast."},
+  {id:8,level:"HARD",question:"UAP reports IV infiltration. Nurse action?",options:["Assess and discontinue IV","Ignore","Reinsert IV","Call family"],correct:0,rationale:"SCFHS: fail-fast for patient safety; proper treatment first."},
+  {id:9,level:"HARD",question:"Patient has DNR, vitals: BP 82/48, HR 118, SpO₂ 88%. Nurse should:",options:["Start CPR","Administer vasopressors","Comfort care only","Notify rapid response"],correct:2,rationale:"SCFHS: tie-breaker integrates ethics and vital signs; DNR directs comfort care."},
+  {id:10,level:"HARD",question:"Patient with acute pain 9/10 requests opioid. Which is best?",options:["Assess pain and vitals first","Give opioid immediately","Document request only","Call family"],correct:0,rationale:"SCFHS: correct sequencing ensures safety; fail-fast if skipped assessment."}
+];
+
+// ================= STATE =================
+let index=0;
+let score=0;
+let name='';
+let currentQuestion={};
+
+function startExam(){
+  name=document.getElementById('candidate').value || 'Anonymous';
+  document.getElementById('intro').classList.add('hidden');
+  document.getElementById('exam').classList.remove('hidden');
+  loadQuestion();
+}
+
+function loadQuestion(){
+  currentQuestion=questions[index];
+  document.getElementById('status').innerHTML=`<span class="badge ${currentQuestion.level.toLowerCase()}">${currentQuestion.level}</span> Question ${index+1}`;
+  document.getElementById('questionBox').innerText=currentQuestion.question;
+  const optBox=document.getElementById('options');
+  optBox.innerHTML='';
+  currentQuestion.options.forEach((o,i)=>{
+    optBox.innerHTML+=`<label><input type="radio" name="opt" value="${i}"/>${o}</label>`;
+  });
+  document.getElementById('rationaleBox').classList.add('hidden');
+  document.getElementById('rationaleBox').innerText='';
+}
+
+function submitAnswer(){
+  const selected=document.querySelector('input[name="opt"]:checked');
+  if(!selected){alert('Please select an answer');return;}
+  const val=parseInt(selected.value);
+  const rationaleBox=document.getElementById('rationaleBox');
+  if(val===currentQuestion.correct){
+    score++;
+    rationaleBox.innerHTML=`✅ Correct! Rationale: ${currentQuestion.rationale}`;
+  }else{
+    rationaleBox.innerHTML=`❌ Incorrect. Rationale: ${currentQuestion.rationale}`;
+  }
+  rationaleBox.classList.remove('hidden');
+  index++;
+  if(index>=questions.length){
+    finishExam();
+  }else{
+    setTimeout(loadQuestion,2000);
+  }
+}
+
+function finishExam(){
+  document.getElementById('exam').classList.add('hidden');
+  document.getElementById('result').classList.remove('hidden');
+  document.getElementById('result').innerHTML=`
+    <h2>Result Report</h2>
+    <p><strong>Candidate:</strong> ${name}</p>
+    <p><strong>Score:</strong> ${score}/${questions.length}</p>
+    <p><strong>Passing Grade:</strong> 70%</p>
+    <p>${score>=70?'<strong style="color:green;">PASS</strong>':'<strong style="color:red;">FAIL</strong>'}</p>
+  `;
+}
+</script>
+</body>
+</html>
